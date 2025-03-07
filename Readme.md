@@ -180,13 +180,3 @@ CALL GetUserTransactions(2);
 ## 📄 **License**
 This project is licensed under the **MIT License**.
 
----
-
-## 🚀 **Next Steps**
-- ✅ **Implement API Controllers**
-- ✅ **Add Unit & Integration Tests**
-- ✅ **Build Frontend (React or Next.js)**
-
----
-
-💡 **Let me know if you need any modifications or additional sections!** 🚀
