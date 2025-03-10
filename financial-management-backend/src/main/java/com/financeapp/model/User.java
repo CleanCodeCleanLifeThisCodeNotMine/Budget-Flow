@@ -3,6 +3,7 @@ package com.financeapp.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -19,6 +20,12 @@ public class User {
     private String username;
     private String email;
     private String password;
+    
+    private String resetPasswordToken;
+    private LocalDateTime resetPasswordTokenExpiry;
+    private boolean enabled = false;
+    private String activationToken;
+    private LocalDateTime activationTokenExpiry;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

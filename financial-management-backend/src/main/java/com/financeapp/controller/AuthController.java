@@ -5,6 +5,7 @@ import com.financeapp.dto.JwtResponse;
 import com.financeapp.model.User;
 import com.financeapp.repository.UserRepository;
 import com.financeapp.security.JwtUtils;
+import com.financeapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -24,6 +26,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -40,16 +43,26 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody LoginRequest registerRequest) {
         Optional<User> userExists = userRepository.findByUsername(registerRequest.getUsername());
         if (userExists.isPresent()) {
-            return ResponseEntity.badRequest().body("Username already exists!");
+            return ResponseEntity.badRequest().body(Map.of("success", "false", "message", "Username already exists!"));
+        }
+        
+        // Check if email already exists
+        Optional<User> emailExists = userRepository.findByEmail(registerRequest.getEmail());
+        if (emailExists.isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("success", "false", "message", "Email already exists!"));
         }
 
         User user = new User();
         user.setUsername(registerRequest.getUsername());
-        user.setEmail(registerRequest.getEmail());  // Không còn lỗi thiếu email
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword())); // Mã hóa mật khẩu
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setEnabled(false); // User is disabled until activation
 
         userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully!");
+        
+        // Generate activation token and return it
+        Map<String, String> activationResult = userService.createActivationToken(user);
+        
+        return ResponseEntity.ok(activationResult);
     }
-
 }
