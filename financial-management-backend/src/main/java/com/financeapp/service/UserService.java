@@ -85,48 +85,41 @@ public class UserService {
         
         return true;
     }
-    
+
     public Map<String, String> createActivationToken(User user) {
         String token = UUID.randomUUID().toString();
         user.setActivationToken(token);
-        user.setActivationTokenExpiry(LocalDateTime.now().plusMinutes(tokenExpiryMinutes));
+        user.setActivationTokenExpiry(LocalDateTime.now().plusMinutes(30)); // Hết hạn sau 30 phút
         userRepository.save(user);
-        
-        String activationLink = frontendUrl + "/activate-account?token=" + token;
-        
-        // For testing purposes, return the token instead of sending an email
+
+        String activationLink = "http://localhost:3000/activate-account?token=" + token;
+
         Map<String, String> response = new HashMap<>();
         response.put("success", "true");
         response.put("message", "Activation link generated successfully");
         response.put("token", token);
         response.put("activationLink", activationLink);
-        
-        // Comment out the email sending for now
-        // try {
-        //     emailService.sendActivationEmail(user.getEmail(), activationLink);
-        // } catch (Exception e) {
-        //     response.put("emailError", e.getMessage());
-        // }
-        
+
         return response;
     }
-    
+
     public boolean activateAccount(String token) {
         Optional<User> userOptional = userRepository.findByActivationToken(token);
         if (userOptional.isEmpty()) {
-            return false;
+            return false; // Token không hợp lệ
         }
-        
+
         User user = userOptional.get();
         if (user.getActivationTokenExpiry().isBefore(LocalDateTime.now())) {
-            return false;
+            return false; // Token hết hạn
         }
-        
-        user.setEnabled(true);
+
+        user.setEnabled(true); // Kích hoạt tài khoản
         user.setActivationToken(null);
         user.setActivationTokenExpiry(null);
         userRepository.save(user);
-        
+
         return true;
     }
+
 }

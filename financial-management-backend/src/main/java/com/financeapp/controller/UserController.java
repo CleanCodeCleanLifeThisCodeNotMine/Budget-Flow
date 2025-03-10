@@ -2,7 +2,6 @@ package com.financeapp.controller;
 
 import com.financeapp.model.User;
 import com.financeapp.repository.UserRepository;
-import com.financeapp.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +18,6 @@ import java.util.Optional;
 public class UserController {
 
     private final UserRepository userRepository;
-    private final JwtUtils jwtUtils;
 
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @DeleteMapping("/delete/{username}")
@@ -40,11 +38,6 @@ public class UserController {
         // Nếu là USER, chỉ cho phép xóa chính mình
         if (!isAdmin && !currentUsername.equals(username)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only delete your own account");
-        }
-
-        // Ngăn Admin xóa Admin khác nếu cần (tùy chọn)
-        if (isAdmin && authentication.getName().equals(username)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Admins cannot delete other admins");
         }
 
         userRepository.delete(user);

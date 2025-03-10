@@ -16,12 +16,15 @@ public class AccountActivationController {
     private final UserService userService;
 
     @PostMapping("/activate")
-    public ResponseEntity<?> activateAccount(@RequestBody AccountActivationRequest request) {
-        boolean success = userService.activateAccount(request.getToken());
+    public ResponseEntity<?> activateAccount(@RequestBody Map<String, String> request) {
+        String token = request.get("token");
+
+        boolean success = userService.activateAccount(token);
         if (success) {
-            return ResponseEntity.ok().body(Map.of("success", "true", "message", "Account activated successfully"));
+            return ResponseEntity.ok(Map.of("success", "true", "message", "Account activated successfully!"));
         } else {
-            return ResponseEntity.badRequest().body(Map.of("success", "false", "message", "Invalid or expired token"));
+            return ResponseEntity.badRequest().body(Map.of("success", "false", "message", "Invalid or expired token!"));
         }
     }
-} 
+}
+
