@@ -1,0 +1,45 @@
+plugins {
+    id 'org.springframework.boot' version '3.2.2' // Thay vì 3.4.3
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'java'
+}
+
+group = 'com.yourproject'
+version = '1.0.0'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Starter
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Spring Security (JWT)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // JJWT (JSON Web Token) - Cần cả 3 phần
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5' // Hỗ trợ JSON
+
+    // Spring Data JPA + MySQL
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'mysql:mysql-connector-java:8.0.33'
+
+    // Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Lombok (Tự động tạo Getter, Setter)
+    implementation 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Test (JUnit & Spring Boot Test)
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
