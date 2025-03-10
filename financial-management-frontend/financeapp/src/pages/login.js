@@ -1,115 +1,119 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { login } from '../services/api';
 import Link from 'next/link';
+import styles from '@/styles/Login.module.css';
 
-export default function Login() {
+function Login() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    identifier: '',
+    password: ''
+  });
   const [error, setError] = useState('');
-  
-  const { 
-    register, 
-    handleSubmit, 
-    formState: { errors } 
-  } = useForm();
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (data) => {
-    setIsSubmitting(true);
-    setError('');
-    
-    try {
-      const response = await login(data.username, data.password);
-      localStorage.setItem('token', response.data.token);
+  useEffect(() => {
+    const token = localStorage.getItem('userToken');
+    if (token) {
       router.push('/dashboard');
-    } catch (error) {
-      // Ensure we're not trying to render an object directly
-      const errorMessage = error.response?.data 
-        ? (typeof error.response.data === 'string' 
-            ? error.response.data 
-            : JSON.stringify(error.response.data))
-        : 'Login failed. Please check your credentials.';
-      setError(errorMessage);
+    }
+  }, []);
+
+  const handleChange = (e) => {
+    setError('');
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // Giả lập đăng nhập thành công
+      if (formData.identifier && formData.password) {
+        // Tạo mock user data
+        const userData = {
+          id: 1,
+          username: formData.identifier,
+          email: formData.identifier.includes('@') ? formData.identifier : `${formData.identifier}@example.com`,
+          displayName: formData.identifier,
+          createdAt: new Date().toISOString()
+        };
+
+        // Lưu thông tin đăng nhập
+        localStorage.setItem('userToken', 'mock-token-123');
+        localStorage.setItem('userData', JSON.stringify(userData));
+        
+        // Chuyển hướng đến dashboard
+        router.push('/dashboard');
+      } else {
+        throw new Error('Vui lòng nhập đầy đủ thông tin');
+      }
+    } catch (err) {
+      setError(err.message);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div style={{ maxWidth: '400px', width: '100%' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-            Sign in to your account
-          </h2>
-          <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-            Or{' '}
-            <Link href="/register" style={{ color: '#4f46e5', fontWeight: '500' }}>
-              create a new account
-            </Link>
-          </p>
-        </div>
+    <div className={styles.loginContainer}>
+      <div className={styles.loginBox}>
+        <h1>Đăng Nhập</h1>
         
-        {error && (
-          <div className="alert alert-danger">
-            <p>{error}</p>
-          </div>
-        )}
+        {error && <div className={styles.error}>{error}</div>}
         
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-group">
-            <label htmlFor="username" style={{ display: 'block', marginBottom: '0.5rem' }}>Username</label>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label htmlFor="identifier">Tên đăng nhập hoặc Email</label>
             <input
-              id="username"
-              name="username"
               type="text"
-              autoComplete="username"
+              id="identifier"
+              name="identifier"
+              value={formData.identifier}
+              onChange={handleChange}
               required
-              className="form-control"
-              placeholder="Username"
-              {...register('username', { required: 'Username is required' })}
+              disabled={loading}
+              placeholder="Nhập tên đăng nhập hoặc email"
             />
-            {errors.username && (
-              <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.username.message}</p>
-            )}
           </div>
-          
-          <div className="form-group">
-            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem' }}>Password</label>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="password">Mật khẩu</label>
             <input
+              type="password"
               id="password"
               name="password"
-              type="password"
-              autoComplete="current-password"
+              value={formData.password}
+              onChange={handleChange}
               required
-              className="form-control"
-              placeholder="Password"
-              {...register('password', { required: 'Password is required' })}
+              disabled={loading}
+              placeholder="Nhập mật khẩu"
             />
-            {errors.password && (
-              <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.password.message}</p>
-            )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <div>
-              <Link href="/forgot-password" style={{ color: '#4f46e5', fontWeight: '500', fontSize: '0.875rem' }}>
-                Forgot your password?
-              </Link>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn"
-            style={{ width: '100%' }}
+          <button 
+            type="submit" 
+            className={styles.submitButton}
+            disabled={loading}
           >
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
+            {loading ? 'Đang xử lý...' : 'Đăng nhập'}
           </button>
         </form>
+
+        <div className={styles.links}>
+          <Link href="/register">
+            Chưa có tài khoản? Đăng ký ngay
+          </Link>
+        </div>
       </div>
     </div>
   );
-} 
+}
+
+export default Login;
