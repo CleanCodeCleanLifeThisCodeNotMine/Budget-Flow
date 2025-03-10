@@ -1,43 +1,49 @@
-import { init, send } from '@emailjs/browser';
+import { sendForm, init } from '@emailjs/browser';
+import { EMAILJS_CONFIG } from '../config/emailjs.config';
 
 // Initialize EmailJS with your Public API key
 export const initEmailJS = () => {
-  init('6xS7gVcnrNq7WUmDe');
-};
-
-// EmailJS service and template IDs
-export const EMAILJS_CONFIG = {
-  serviceId: 'service_fl181h7',
-  resetTemplateId: 'your_reset_template_id',
-  activationTemplateId: 'template_2g5m1mb'
+  init(EMAILJS_CONFIG.publicKey);
 };
 
 // Send password reset email
-export const sendPasswordResetEmail = (email, resetLink) => {
+export const sendPasswordResetEmail = async (email, resetLink) => {
   const templateParams = {
     to_email: email,
     reset_link: resetLink
   };
   
-  return send(
-    EMAILJS_CONFIG.serviceId,
-    EMAILJS_CONFIG.resetTemplateId,
-    templateParams,
-    '6xS7gVcnrNq7WUmDe' // Public key
-  );
+  try {
+    const response = await sendForm(
+      EMAILJS_CONFIG.serviceId,
+      EMAILJS_CONFIG.resetTemplateId,
+      templateParams,
+      EMAILJS_CONFIG.publicKey
+    );
+    return { success: true, response };
+  } catch (error) {
+    console.error('Failed to send password reset email:', error);
+    return { success: false, error: error.text || 'Failed to send email' };
+  }
 };
 
 // Send account activation email
-export const sendActivationEmail = (email, activationLink) => {
+export const sendActivationEmail = async (email, activationLink) => {
   const templateParams = {
     to_email: email,
     activation_link: activationLink
   };
   
-  return send(
-    EMAILJS_CONFIG.serviceId,
-    EMAILJS_CONFIG.activationTemplateId,
-    templateParams,
-    '6xS7gVcnrNq7WUmDe' // Public key
-  );
+  try {
+    const response = await sendForm(
+      EMAILJS_CONFIG.serviceId,
+      EMAILJS_CONFIG.activationTemplateId,
+      templateParams,
+      EMAILJS_CONFIG.publicKey
+    );
+    return { success: true, response };
+  } catch (error) {
+    console.error('Failed to send activation email:', error);
+    return { success: false, error: error.text || 'Failed to send email' };
+  }
 }; 
