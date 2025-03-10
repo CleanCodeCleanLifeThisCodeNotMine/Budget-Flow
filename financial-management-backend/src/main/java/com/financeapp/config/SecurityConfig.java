@@ -44,16 +44,20 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/account/activate").permitAll()
                 .requestMatchers("/oauth2/**", "/login/oauth2/code/**").permitAll()
+                .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(authorization -> authorization
-                    .baseUri("/oauth2/authorize"))
+                    .baseUri("/api/auth/oauth2/authorize"))
                 .redirectionEndpoint(redirection -> redirection
-                    .baseUri("/oauth2/callback/*"))
+                    .baseUri("/api/auth/oauth2/callback/*"))
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService))
-                .successHandler(oAuth2SuccessHandler))
+                .successHandler(oAuth2SuccessHandler)
+                .failureHandler((request, response, exception) -> {
+                    response.sendRedirect("http://localhost:3000/login?error=" + exception.getMessage());
+                }))
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
