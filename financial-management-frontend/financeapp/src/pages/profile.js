@@ -8,6 +8,7 @@ export default function Profile() {
   const [avatarPreview, setAvatarPreview] = useState("");
 
   useEffect(() => {
+    // Kiểm tra localStorage có dữ liệu không
     const storedProfile = localStorage.getItem("profile");
     if (storedProfile) {
       const parsedProfile = JSON.parse(storedProfile);
@@ -15,13 +16,14 @@ export default function Profile() {
       setEditedProfile(parsedProfile);
       setAvatarPreview(parsedProfile.avatar);
     } else {
+      // Nếu không có, lấy từ JSON file mặc định
       fetch("/profile.json")
         .then((res) => res.json())
         .then((data) => {
           setProfile(data);
           setEditedProfile(data);
           setAvatarPreview(data.avatar);
-          localStorage.setItem("profile", JSON.stringify(data)); 
+          localStorage.setItem("profile", JSON.stringify(data)); // Lưu vào localStorage
         })
         .catch((error) => console.error("Lỗi tải dữ liệu:", error));
     }
@@ -47,7 +49,7 @@ export default function Profile() {
     e.preventDefault();
     setProfile(editedProfile);
     setIsEditing(false);
-    localStorage.setItem("profile", JSON.stringify(editedProfile)); 
+    localStorage.setItem("profile", JSON.stringify(editedProfile)); // Lưu thay đổi vào localStorage
     alert("Cập nhật thành công!");
   };
 

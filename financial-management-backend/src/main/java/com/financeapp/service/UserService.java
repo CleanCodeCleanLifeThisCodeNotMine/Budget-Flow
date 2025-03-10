@@ -19,7 +19,6 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
     
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -50,19 +49,10 @@ public class UserService {
         
         String resetLink = frontendUrl + "/reset-password?token=" + token;
         
-        // For testing purposes, return the token instead of sending an email
         Map<String, String> response = new HashMap<>();
         response.put("success", "true");
         response.put("message", "Password reset link generated successfully");
-        response.put("token", token);
         response.put("resetLink", resetLink);
-        
-        // Comment out the email sending for now
-        // try {
-        //     emailService.sendPasswordResetEmail(email, resetLink);
-        // } catch (Exception e) {
-        //     response.put("emailError", e.getMessage());
-        // }
         
         return response;
     }
@@ -94,19 +84,10 @@ public class UserService {
         
         String activationLink = frontendUrl + "/activate-account?token=" + token;
         
-        // For testing purposes, return the token instead of sending an email
         Map<String, String> response = new HashMap<>();
         response.put("success", "true");
-        response.put("message", "Activation link generated successfully");
-        response.put("token", token);
+        response.put("message", "Registration successful, but failed to send activation email");
         response.put("activationLink", activationLink);
-        
-        // Comment out the email sending for now
-        // try {
-        //     emailService.sendActivationEmail(user.getEmail(), activationLink);
-        // } catch (Exception e) {
-        //     response.put("emailError", e.getMessage());
-        // }
         
         return response;
     }
