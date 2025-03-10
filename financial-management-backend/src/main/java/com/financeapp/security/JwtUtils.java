@@ -92,4 +92,13 @@ public class JwtUtils {
                 .getBody()
                 .getExpiration();
     }
+
+    public String generateTokenFromUsername(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS512)
+                .compact();
+    }
 }

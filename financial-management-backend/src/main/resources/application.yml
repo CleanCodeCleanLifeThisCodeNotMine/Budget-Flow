@@ -1,0 +1,18 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23lik6g6WygAhPnsUc
+            client-secret: ecfcf33be7c7733bfdcd0e4671f01467ebf1a471
+            scope:
+              - user:email
+              - read:user
+#            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
+#            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
+app:
+  jwt:
+    expiration: 86400000 # 24 hours
+  oauth2:
+    redirectUri: http://localhost:3000/oauth2/redirect 
