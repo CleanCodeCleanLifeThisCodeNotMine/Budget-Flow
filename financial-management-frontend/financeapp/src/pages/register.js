@@ -7,6 +7,7 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [activationLink, setActivationLink] = useState('');
   
   const { 
     register, 
@@ -20,144 +21,159 @@ export default function Register() {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     setMessage('');
+    setActivationLink('');
     
     try {
-      await registerUser(data.username, data.email, data.password);
+      const response = await registerUser(data.username, data.email, data.password);
       setIsSuccess(true);
-      setMessage('Registration successful! Please check your email to activate your account.');
+      
+      // Check if the response contains an activation link
+      if (response.data && response.data.activationLink) {
+        setActivationLink(response.data.activationLink);
+        setMessage('Registration successful! Use the activation link below to activate your account.');
+      } else {
+        setMessage('Registration successful! Please check your email to activate your account.');
+      }
     } catch (error) {
       setIsSuccess(false);
-      setMessage(error.response?.data || 'Registration failed. Please try again.');
+      const errorMessage = error.response?.data 
+        ? (typeof error.response.data === 'string' 
+            ? error.response.data 
+            : error.response.data.message || JSON.stringify(error.response.data))
+        : 'Registration failed. Please try again.';
+      setMessage(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ maxWidth: '400px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
             Create a new account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
             Or{' '}
-            <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link href="/login" style={{ color: '#4f46e5', fontWeight: '500' }}>
               sign in to your existing account
             </Link>
           </p>
         </div>
         
         {message && (
-          <div className={`rounded-md p-4 ${isSuccess ? 'bg-green-50' : 'bg-red-50'}`}>
-            <div className="flex">
-              <div className="ml-3">
-                <p className={`text-sm font-medium ${isSuccess ? 'text-green-800' : 'text-red-800'}`}>
-                  {message}
-                </p>
-              </div>
-            </div>
+          <div className={isSuccess ? 'alert alert-success' : 'alert alert-danger'}>
+            <p>{message}</p>
+          </div>
+        )}
+        
+        {activationLink && (
+          <div className="alert alert-info" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+            <p>Activation Link (for testing):</p>
+            <a href={activationLink} style={{ wordBreak: 'break-all', color: '#4f46e5' }}>
+              {activationLink}
+            </a>
           </div>
         )}
         
         {!isSuccess && (
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div className="mb-4">
-                <label htmlFor="username" className="sr-only">Username</label>
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  autoComplete="username"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Username"
-                  {...register('username', { 
-                    required: 'Username is required',
-                    minLength: {
-                      value: 3,
-                      message: 'Username must be at least 3 characters'
-                    }
-                  })}
-                />
-                {errors.username && (
-                  <p className="mt-2 text-sm text-red-600">{errors.username.message}</p>
-                )}
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="email" className="sr-only">Email address</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Email address"
-                  {...register('email', { 
-                    required: 'Email is required',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Invalid email address'
-                    }
-                  })}
-                />
-                {errors.email && (
-                  <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
-                )}
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="password" className="sr-only">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Password"
-                  {...register('password', { 
-                    required: 'Password is required',
-                    minLength: {
-                      value: 8,
-                      message: 'Password must be at least 8 characters'
-                    }
-                  })}
-                />
-                {errors.password && (
-                  <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
-                )}
-              </div>
-              
-              <div>
-                <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Confirm password"
-                  {...register('confirmPassword', { 
-                    required: 'Please confirm your password',
-                    validate: value => value === password || 'Passwords do not match'
-                  })}
-                />
-                {errors.confirmPassword && (
-                  <p className="mt-2 text-sm text-red-600">{errors.confirmPassword.message}</p>
-                )}
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="form-group">
+              <label htmlFor="username" style={{ display: 'block', marginBottom: '0.5rem' }}>Username</label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                required
+                className="form-control"
+                placeholder="Username"
+                {...register('username', { 
+                  required: 'Username is required',
+                  minLength: {
+                    value: 3,
+                    message: 'Username must be at least 3 characters'
+                  }
+                })}
+              />
+              {errors.username && (
+                <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.username.message}</p>
+              )}
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="email" style={{ display: 'block', marginBottom: '0.5rem' }}>Email address</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="form-control"
+                placeholder="Email address"
+                {...register('email', { 
+                  required: 'Email is required',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Invalid email address'
+                  }
+                })}
+              />
+              {errors.email && (
+                <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.email.message}</p>
+              )}
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem' }}>Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                className="form-control"
+                placeholder="Password"
+                {...register('password', { 
+                  required: 'Password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters'
+                  }
+                })}
+              />
+              {errors.password && (
+                <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.password.message}</p>
+              )}
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="confirmPassword" style={{ display: 'block', marginBottom: '0.5rem' }}>Confirm Password</label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                className="form-control"
+                placeholder="Confirm password"
+                {...register('confirmPassword', { 
+                  required: 'Please confirm your password',
+                  validate: value => value === password || 'Passwords do not match'
+                })}
+              />
+              {errors.confirmPassword && (
+                <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.confirmPassword.message}</p>
+              )}
             </div>
 
-            <div>
+            <div style={{ marginTop: '1.5rem' }}>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="btn"
+                style={{ width: '100%' }}
               >
                 {isSubmitting ? 'Registering...' : 'Register'}
               </button>
@@ -165,9 +181,9 @@ export default function Register() {
           </form>
         )}
         
-        {isSuccess && (
-          <div className="text-center mt-4">
-            <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+        {isSuccess && !activationLink && (
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <Link href="/login" style={{ color: '#4f46e5', fontWeight: '500' }}>
               Go to login
             </Link>
           </div>

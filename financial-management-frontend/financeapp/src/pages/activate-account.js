@@ -23,7 +23,12 @@ export default function ActivateAccount() {
         setMessage('Your account has been successfully activated! You can now login.');
       } catch (error) {
         setIsSuccess(false);
-        setMessage(error.response?.data || 'Failed to activate account. The link may be expired or invalid.');
+        const errorMessage = error.response?.data 
+          ? (typeof error.response.data === 'string' 
+              ? error.response.data 
+              : JSON.stringify(error.response.data))
+          : 'Failed to activate account. The link may be expired or invalid.';
+        setMessage(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -34,50 +39,51 @@ export default function ActivateAccount() {
 
   if (isLoading && token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Activating your account...</p>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            display: 'inline-block', 
+            width: '3rem', 
+            height: '3rem', 
+            borderRadius: '50%', 
+            borderBottom: '2px solid #4f46e5',
+            animation: 'spin 1s linear infinite'
+          }}></div>
+          <p style={{ marginTop: '1rem', color: '#6b7280' }}>Activating your account...</p>
+          <style jsx>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ maxWidth: '400px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
             Account Activation
           </h2>
         </div>
         
         {!token && !isLoading && (
-          <div className="rounded-md p-4 bg-red-50">
-            <div className="flex">
-              <div className="ml-3">
-                <p className="text-sm font-medium text-red-800">
-                  Invalid activation link. Please check your email for the correct link.
-                </p>
-              </div>
-            </div>
+          <div className="alert alert-danger">
+            <p>Invalid activation link. Please check your email for the correct link.</p>
           </div>
         )}
         
         {message && (
-          <div className={`rounded-md p-4 ${isSuccess ? 'bg-green-50' : 'bg-red-50'}`}>
-            <div className="flex">
-              <div className="ml-3">
-                <p className={`text-sm font-medium ${isSuccess ? 'text-green-800' : 'text-red-800'}`}>
-                  {message}
-                </p>
-              </div>
-            </div>
+          <div className={isSuccess ? 'alert alert-success' : 'alert alert-danger'}>
+            <p>{message}</p>
           </div>
         )}
         
-        <div className="text-center mt-4">
-          <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+        <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+          <Link href="/login" style={{ color: '#4f46e5', fontWeight: '500' }}>
             Go to login
           </Link>
         </div>

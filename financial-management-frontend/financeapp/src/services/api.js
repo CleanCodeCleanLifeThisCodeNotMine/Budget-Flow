@@ -22,6 +22,21 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Add response interceptor to handle error objects
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If the error has a response with data
+    if (error.response && error.response.data) {
+      // If the data is an object, convert it to a string
+      if (typeof error.response.data === 'object') {
+        error.response.data = JSON.stringify(error.response.data);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth services
 export const login = (username, password) => {
   return api.post('/auth/login', { username, password });

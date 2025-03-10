@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/password")
 @RequiredArgsConstructor
@@ -16,11 +18,12 @@ public class PasswordResetController {
 
     @PostMapping("/reset-request")
     public ResponseEntity<?> requestPasswordReset(@RequestBody PasswordResetRequest request) {
-        boolean success = userService.requestPasswordReset(request.getEmail());
-        if (success) {
-            return ResponseEntity.ok().body("Password reset email sent successfully");
+        Map<String, String> result = userService.requestPasswordReset(request.getEmail());
+        
+        if ("true".equals(result.get("success"))) {
+            return ResponseEntity.ok(result);
         } else {
-            return ResponseEntity.badRequest().body("Email not found");
+            return ResponseEntity.badRequest().body(result);
         }
     }
 
@@ -28,9 +31,9 @@ public class PasswordResetController {
     public ResponseEntity<?> confirmPasswordReset(@RequestBody PasswordResetConfirmRequest request) {
         boolean success = userService.confirmPasswordReset(request.getToken(), request.getNewPassword());
         if (success) {
-            return ResponseEntity.ok().body("Password reset successfully");
+            return ResponseEntity.ok().body(Map.of("success", "true", "message", "Password reset successfully"));
         } else {
-            return ResponseEntity.badRequest().body("Invalid or expired token");
+            return ResponseEntity.badRequest().body(Map.of("success", "false", "message", "Invalid or expired token"));
         }
     }
 } 

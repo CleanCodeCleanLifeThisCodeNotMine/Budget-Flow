@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -42,13 +43,13 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@RequestBody LoginRequest registerRequest) {
         Optional<User> userExists = userRepository.findByUsername(registerRequest.getUsername());
         if (userExists.isPresent()) {
-            return ResponseEntity.badRequest().body("Username already exists!");
+            return ResponseEntity.badRequest().body(Map.of("success", "false", "message", "Username already exists!"));
         }
         
         // Check if email already exists
         Optional<User> emailExists = userRepository.findByEmail(registerRequest.getEmail());
         if (emailExists.isPresent()) {
-            return ResponseEntity.badRequest().body("Email already exists!");
+            return ResponseEntity.badRequest().body(Map.of("success", "false", "message", "Email already exists!"));
         }
 
         User user = new User();
@@ -59,9 +60,9 @@ public class AuthController {
 
         userRepository.save(user);
         
-        // Send activation email
-        userService.createActivationToken(user);
+        // Generate activation token and return it
+        Map<String, String> activationResult = userService.createActivationToken(user);
         
-        return ResponseEntity.ok("User registered successfully! Please check your email to activate your account.");
+        return ResponseEntity.ok(activationResult);
     }
 }

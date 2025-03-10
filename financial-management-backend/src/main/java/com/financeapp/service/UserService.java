@@ -9,6 +9,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,10 +36,10 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public boolean requestPasswordReset(String email) {
+    public Map<String, String> requestPasswordReset(String email) {
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
-            return false;
+            return Map.of("success", "false", "message", "Email not found");
         }
         
         User user = userOptional.get();
@@ -47,9 +49,22 @@ public class UserService {
         userRepository.save(user);
         
         String resetLink = frontendUrl + "/reset-password?token=" + token;
-        emailService.sendPasswordResetEmail(email, resetLink);
         
-        return true;
+        // For testing purposes, return the token instead of sending an email
+        Map<String, String> response = new HashMap<>();
+        response.put("success", "true");
+        response.put("message", "Password reset link generated successfully");
+        response.put("token", token);
+        response.put("resetLink", resetLink);
+        
+        // Comment out the email sending for now
+        // try {
+        //     emailService.sendPasswordResetEmail(email, resetLink);
+        // } catch (Exception e) {
+        //     response.put("emailError", e.getMessage());
+        // }
+        
+        return response;
     }
     
     public boolean confirmPasswordReset(String token, String newPassword) {
@@ -71,16 +86,29 @@ public class UserService {
         return true;
     }
     
-    public boolean createActivationToken(User user) {
+    public Map<String, String> createActivationToken(User user) {
         String token = UUID.randomUUID().toString();
         user.setActivationToken(token);
         user.setActivationTokenExpiry(LocalDateTime.now().plusMinutes(tokenExpiryMinutes));
         userRepository.save(user);
         
         String activationLink = frontendUrl + "/activate-account?token=" + token;
-        emailService.sendActivationEmail(user.getEmail(), activationLink);
         
-        return true;
+        // For testing purposes, return the token instead of sending an email
+        Map<String, String> response = new HashMap<>();
+        response.put("success", "true");
+        response.put("message", "Activation link generated successfully");
+        response.put("token", token);
+        response.put("activationLink", activationLink);
+        
+        // Comment out the email sending for now
+        // try {
+        //     emailService.sendActivationEmail(user.getEmail(), activationLink);
+        // } catch (Exception e) {
+        //     response.put("emailError", e.getMessage());
+        // }
+        
+        return response;
     }
     
     public boolean activateAccount(String token) {

@@ -24,90 +24,90 @@ export default function Login() {
       localStorage.setItem('token', response.data.token);
       router.push('/dashboard');
     } catch (error) {
-      setError(error.response?.data || 'Login failed. Please check your credentials.');
+      // Ensure we're not trying to render an object directly
+      const errorMessage = error.response?.data 
+        ? (typeof error.response.data === 'string' 
+            ? error.response.data 
+            : JSON.stringify(error.response.data))
+        : 'Login failed. Please check your credentials.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ maxWidth: '400px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
             Sign in to your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
             Or{' '}
-            <Link href="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <Link href="/register" style={{ color: '#4f46e5', fontWeight: '500' }}>
               create a new account
             </Link>
           </p>
         </div>
         
         {error && (
-          <div className="rounded-md p-4 bg-red-50">
-            <div className="flex">
-              <div className="ml-3">
-                <p className="text-sm font-medium text-red-800">{error}</p>
-              </div>
-            </div>
+          <div className="alert alert-danger">
+            <p>{error}</p>
           </div>
         )}
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="username" className="sr-only">Username</label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-                {...register('username', { required: 'Username is required' })}
-              />
-              {errors.username && (
-                <p className="mt-2 text-sm text-red-600">{errors.username.message}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                {...register('password', { required: 'Password is required' })}
-              />
-              {errors.password && (
-                <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="form-group">
+            <label htmlFor="username" style={{ display: 'block', marginBottom: '0.5rem' }}>Username</label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="username"
+              required
+              className="form-control"
+              placeholder="Username"
+              {...register('username', { required: 'Username is required' })}
+            />
+            {errors.username && (
+              <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.username.message}</p>
+            )}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem' }}>Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              className="form-control"
+              placeholder="Password"
+              {...register('password', { required: 'Password is required' })}
+            />
+            {errors.password && (
+              <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.password.message}</p>
+            )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <Link href="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <Link href="/forgot-password" style={{ color: '#4f46e5', fontWeight: '500', fontSize: '0.875rem' }}>
                 Forgot your password?
               </Link>
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="btn"
+            style={{ width: '100%' }}
+          >
+            {isSubmitting ? 'Signing in...' : 'Sign in'}
+          </button>
         </form>
       </div>
     </div>

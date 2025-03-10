@@ -44,101 +44,100 @@ export default function ResetPassword() {
       setMessage('Password reset successful! You can now login with your new password.');
     } catch (error) {
       setIsSuccess(false);
-      setMessage(error.response?.data || 'Failed to reset password. The link may be expired or invalid.');
+      // Ensure we're not trying to render an object directly
+      const errorMessage = error.response?.data 
+        ? (typeof error.response.data === 'string' 
+            ? error.response.data 
+            : JSON.stringify(error.response.data))
+        : 'Failed to reset password. The link may be expired or invalid.';
+      setMessage(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <div style={{ maxWidth: '400px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
             Reset your password
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>
             Enter your new password below
           </p>
         </div>
         
         {message && (
-          <div className={`rounded-md p-4 ${isSuccess ? 'bg-green-50' : 'bg-red-50'}`}>
-            <div className="flex">
-              <div className="ml-3">
-                <p className={`text-sm font-medium ${isSuccess ? 'text-green-800' : 'text-red-800'}`}>
-                  {message}
-                </p>
-              </div>
-            </div>
+          <div className={isSuccess ? 'alert alert-success' : 'alert alert-danger'}>
+            <p>{message}</p>
           </div>
         )}
         
         {isSuccess ? (
-          <div className="text-center mt-4">
-            <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <Link href="/login" style={{ color: '#4f46e5', fontWeight: '500' }}>
               Go to login
             </Link>
           </div>
         ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div className="mb-4">
-                <label htmlFor="password" className="sr-only">New Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="New password"
-                  {...register('password', { 
-                    required: 'Password is required',
-                    minLength: {
-                      value: 8,
-                      message: 'Password must be at least 8 characters'
-                    }
-                  })}
-                />
-                {errors.password && (
-                  <p className="mt-2 text-sm text-red-600">{errors.password.message}</p>
-                )}
-              </div>
-              
-              <div>
-                <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                  placeholder="Confirm new password"
-                  {...register('confirmPassword', { 
-                    required: 'Please confirm your password',
-                    validate: value => value === password || 'Passwords do not match'
-                  })}
-                />
-                {errors.confirmPassword && (
-                  <p className="mt-2 text-sm text-red-600">{errors.confirmPassword.message}</p>
-                )}
-              </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="form-group">
+              <label htmlFor="password" style={{ display: 'block', marginBottom: '0.5rem' }}>New Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                required
+                className="form-control"
+                placeholder="New password"
+                {...register('password', { 
+                  required: 'Password is required',
+                  minLength: {
+                    value: 8,
+                    message: 'Password must be at least 8 characters'
+                  }
+                })}
+              />
+              {errors.password && (
+                <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.password.message}</p>
+              )}
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="confirmPassword" style={{ display: 'block', marginBottom: '0.5rem' }}>Confirm Password</label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                required
+                className="form-control"
+                placeholder="Confirm new password"
+                {...register('confirmPassword', { 
+                  required: 'Please confirm your password',
+                  validate: value => value === password || 'Passwords do not match'
+                })}
+              />
+              {errors.confirmPassword && (
+                <p style={{ color: '#b91c1c', fontSize: '0.875rem', marginTop: '0.5rem' }}>{errors.confirmPassword.message}</p>
+              )}
             </div>
 
-            <div>
+            <div style={{ marginTop: '1.5rem' }}>
               <button
                 type="submit"
                 disabled={isSubmitting || !token}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="btn"
+                style={{ width: '100%' }}
               >
                 {isSubmitting ? 'Resetting...' : 'Reset Password'}
               </button>
             </div>
             
-            <div className="text-sm text-center">
-              <Link href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <Link href="/login" style={{ color: '#4f46e5', fontWeight: '500', fontSize: '0.875rem' }}>
                 Back to login
               </Link>
             </div>
