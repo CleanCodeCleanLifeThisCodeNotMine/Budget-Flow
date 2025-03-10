@@ -29,6 +29,8 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/password/reset-request", "/api/password/reset-confirm").permitAll()
+                .requestMatchers("/api/account/activate").permitAll()
                 .requestMatchers("/api/user/delete").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
                 .and()

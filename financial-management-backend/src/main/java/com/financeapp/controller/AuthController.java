@@ -5,6 +5,7 @@ import com.financeapp.dto.JwtResponse;
 import com.financeapp.model.User;
 import com.financeapp.repository.UserRepository;
 import com.financeapp.security.JwtUtils;
+import com.financeapp.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +25,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+    private final UserService userService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
@@ -42,14 +44,24 @@ public class AuthController {
         if (userExists.isPresent()) {
             return ResponseEntity.badRequest().body("Username already exists!");
         }
+        
+        // Check if email already exists
+        Optional<User> emailExists = userRepository.findByEmail(registerRequest.getEmail());
+        if (emailExists.isPresent()) {
+            return ResponseEntity.badRequest().body("Email already exists!");
+        }
 
         User user = new User();
         user.setUsername(registerRequest.getUsername());
-        user.setEmail(registerRequest.getEmail());  // Không còn lỗi thiếu email
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword())); // Mã hóa mật khẩu
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setEnabled(false); // User is disabled until activation
 
         userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully!");
+        
+        // Send activation email
+        userService.createActivationToken(user);
+        
+        return ResponseEntity.ok("User registered successfully! Please check your email to activate your account.");
     }
-
 }
