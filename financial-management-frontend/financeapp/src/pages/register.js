@@ -1,13 +1,21 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { register as registerUser } from '../services/api';
+import { sendForm } from '@emailjs/browser';
+import { EMAILJS_CONFIG } from '../config/emailjs.config';
 import Link from 'next/link';
 
+// EmailJS Template Variables Required:
+// - to_email: The recipient's email address
+// - activation_link: The activation link for the account
+
 export default function Register() {
+  const activationFormRef = useRef();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
-  const [activationLink, setActivationLink] = useState('');
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [activationData, setActivationData] = useState(null);
   
   const { 
     register, 
@@ -21,18 +29,20 @@ export default function Register() {
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     setMessage('');
-    setActivationLink('');
     
     try {
       const response = await registerUser(data.username, data.email, data.password);
       setIsSuccess(true);
       
-      // Check if the response contains an activation link
+      // If the response contains an activation link, prepare to send an email
       if (response.data && response.data.activationLink) {
-        setActivationLink(response.data.activationLink);
-        setMessage('Registration successful! Use the activation link below to activate your account.');
+        setMessage(`Registration successful! Preparing activation email for ${data.email}...`);
+        setActivationData({
+          to_email: data.email,
+          activation_link: response.data.activationLink
+        });
       } else {
-        setMessage('Registration successful! Please check your email to activate your account.');
+        setMessage(response.data.message || 'Registration successful! Please check your email to activate your account.');
       }
     } catch (error) {
       setIsSuccess(false);
@@ -46,6 +56,37 @@ export default function Register() {
       setIsSubmitting(false);
     }
   };
+
+  const sendActivationEmail = async () => {
+    if (!activationData) return;
+    
+    setIsSendingEmail(true);
+    setMessage(`Sending activation email to ${activationData.to_email}...`);
+    
+    try {
+      await sendForm(
+        EMAILJS_CONFIG.serviceId,
+        EMAILJS_CONFIG.activationTemplateId,
+        activationFormRef.current,
+        EMAILJS_CONFIG.publicKey
+      );
+      
+      setMessage(`Registration successful! Activation email has been sent to ${activationData.to_email}. Please check your email to activate your account.`);
+    } catch (error) {
+      console.error('Failed to send activation email:', error);
+      setMessage(`Failed to send activation email to ${activationData.to_email}. Please try registering again.`);
+      setIsSuccess(false);
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  // Send activation email when activationData is set
+  useEffect(() => {
+    if (activationData) {
+      sendActivationEmail();
+    }
+  }, [activationData]);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
@@ -64,18 +105,15 @@ export default function Register() {
         
         {message && (
           <div className={isSuccess ? 'alert alert-success' : 'alert alert-danger'}>
-            <p>{message}</p>
+            <p style={{ whiteSpace: 'pre-wrap' }}>{message}</p>
           </div>
         )}
         
-        {activationLink && (
-          <div className="alert alert-info" style={{ marginTop: '1rem', marginBottom: '1rem' }}>
-            <p>Activation Link (for testing):</p>
-            <a href={activationLink} style={{ wordBreak: 'break-all', color: '#4f46e5' }}>
-              {activationLink}
-            </a>
-          </div>
-        )}
+        {/* Hidden form for activation email */}
+        <form ref={activationFormRef} style={{ display: 'none' }}>
+          <input type="hidden" name="to_email" value={activationData?.to_email || ''} />
+          <input type="hidden" name="activation_link" value={activationData?.activation_link || ''} />
+        </form>
         
         {!isSuccess && (
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -171,17 +209,17 @@ export default function Register() {
             <div style={{ marginTop: '1.5rem' }}>
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isSendingEmail}
                 className="btn"
                 style={{ width: '100%' }}
               >
-                {isSubmitting ? 'Registering...' : 'Register'}
+                {isSubmitting ? 'Registering...' : isSendingEmail ? 'Sending Activation Email...' : 'Register'}
               </button>
             </div>
           </form>
         )}
         
-        {isSuccess && !activationLink && (
+        {isSuccess && (
           <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
             <Link href="/login" style={{ color: '#4f46e5', fontWeight: '500' }}>
               Go to login
